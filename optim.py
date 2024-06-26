@@ -62,6 +62,32 @@ class Momentum(Optim):
         self.pos_history.append(self.pos)
 
 
+class NestorovMomentum(Optim):
+    def __init__(self, lr: float = 1e-3, decay: float = 1e-5, pos: np.ndarray | list = np.asarray([2, 3])):
+        """ Implements SGD with Nestorov momentum. 
+
+        Nestorov momentum is the same as regular momentum, but it evaluates the gradient after the update instead of before.
+        """
+        raise NotImplementedError   # Needs API change to know value of function so it can estimate grad again
+        self.lr = lr
+        self.decay = decay
+
+        self.pos = np.asarray(pos, dtype=np.float64)
+        self.pos_history = []
+        self.pos_history.append(self.pos)
+        self.grad = np.asarray([0, 0], dtype=np.float64)
+        self.prev_delta = 0
+
+
+    def step(self, grad: np.ndarray | list):
+        raise NotImplementedError   # Needs API change to know value of function so it can estimate grad again
+        self.grad = np.asarray(grad)
+        delta = self.lr * self.grad + self.prev_delta * self.decay
+        self.pos = self.pos - delta
+        self.prev_delta = delta
+        self.pos_history.append(self.pos)
+
+
 class AdaGrad(Optim):
     def __init__(self, lr: float = 1e-2, pos: np.ndarray | list = np.asarray([2, 3])):
         """ Implements AdaGrad. 
@@ -81,5 +107,29 @@ class AdaGrad(Optim):
     def step(self, grad: np.ndarray | list):
         self.grad = np.asarray(grad)
         self.sq_grad_acc = self.sq_grad_acc + self.grad ** 2
+        self.pos = self.pos - self.lr * (self.grad / np.sqrt(self.sq_grad_acc))
+        self.pos_history.append(self.pos)
+
+
+
+class RMSProp(Optim):
+    def __init__(self, lr: float = 1e-2, decay: float = 1e-5, pos: np.ndarray | list = np.asarray([2, 3])):
+        """ Implements RMSProp. 
+        
+        Like AdaGrad, except allows the gradient accumulator to decay (in an effort to speed things up).
+        AdaGrad is slow since the updates are only made smaller more aggressively over time.
+        """
+        self.lr = lr
+        self.decay = decay
+        self.pos = np.asarray(pos, dtype=np.float64)
+        self.pos_history = []
+        self.pos_history.append(self.pos)
+        self.grad = np.asarray([0, 0], dtype=np.float64)
+        self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
+
+
+    def step(self, grad: np.ndarray | list):
+        self.grad = np.asarray(grad)
+        self.sq_grad_acc = self.sq_grad_acc * self.decay + (self.grad ** 2) * (1 - self.decay)
         self.pos = self.pos - self.lr * (self.grad / np.sqrt(self.sq_grad_acc))
         self.pos_history.append(self.pos)
