@@ -22,8 +22,10 @@ def main():
     # opt = optim.SGD(lr=1e-3, pos=start_point)
     # opt = optim.Momentum(lr=1e-3, decay=1e-5, pos=start_point)
     # opt = optim.AdaGrad(lr=1e-2, pos=start_point)
-    opt = optim.RMSProp(lr=1e-2, decay=1e-5, pos=start_point)
+    # opt = optim.RMSProp(lr=1e-2, decay=1e-2, pos=start_point)
+    opt = optim.Adam(lr=1e-2, beta1=0.9, beta2=0.999, pos=start_point)
 
+    # Run optimisation
     loss_history = []
     loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
     for i in range(max_steps):
@@ -36,6 +38,8 @@ def main():
         opt.step(grad)
         loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
 
+
+    # Plotting
     x_coords, y_coords = opt.get_xy_lists()
     loss_history = np.array(loss_history)
     ax.plot3D(x_coords, y_coords, loss_history, "r", zorder=10)

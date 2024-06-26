@@ -133,3 +133,28 @@ class RMSProp(Optim):
         self.sq_grad_acc = self.sq_grad_acc * self.decay + (self.grad ** 2) * (1 - self.decay)
         self.pos = self.pos - self.lr * (self.grad / np.sqrt(self.sq_grad_acc))
         self.pos_history.append(self.pos)
+
+
+class Adam(Optim):
+    def __init__(self, lr: float = 1e-2, beta1: float = 0.9, beta2: float = 0.999, pos: np.ndarray | list = np.asarray([2, 3])):
+        """ Implements Adam. 
+        
+        Momentum + RMSProp: keeps both grad and sq_grad accumulators, i.e. it does both momentum and RMSProp.
+        """
+        self.lr = lr
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.pos = np.asarray(pos, dtype=np.float64)
+        self.pos_history = []
+        self.pos_history.append(self.pos)
+        self.grad = np.asarray([0, 0], dtype=np.float64)
+        self.grad_acc = np.asarray([0, 0], dtype=np.float64)
+        self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
+
+
+    def step(self, grad: np.ndarray | list):
+        self.grad = np.asarray(grad)
+        self.grad_acc = self.grad_acc * self.beta1 + self.grad * (1 - self.beta1)
+        self.sq_grad_acc = self.sq_grad_acc * self.beta2 + (self.grad ** 2) * (1 - self.beta2)
+        self.pos = self.pos - self.lr * (self.grad_acc / np.sqrt(self.sq_grad_acc))
+        self.pos_history.append(self.pos)
