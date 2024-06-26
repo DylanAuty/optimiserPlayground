@@ -19,8 +19,9 @@ def main():
     # Optimiser setup
     start_point = [0, -4]
     max_steps = 10000
-    # opt = optim.SGD(lr=1e-5, pos=start_point)
-    opt = optim.Momentum(lr=1e-3, decay=1e-2, pos=start_point)
+    # opt = optim.SGD(lr=1e-3, pos=start_point)
+    # opt = optim.Momentum(lr=1e-3, decay=1e-5, pos=start_point)
+    opt = optim.AdaGrad(lr=1e-2, pos=start_point)
 
     loss_history = []
     loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
