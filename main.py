@@ -1,15 +1,31 @@
-import test_functions
-import optim
+import os
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
+
+import optim
+import test_functions
 
 
-def main():
-    test_fn = test_functions.himmelblau
+def main(args):
+    # Set up test function first
+    match args.test_fn:
+        case "sphere": 
+            test_fn = test_functions.Sphere()
+        case "beale": 
+            test_fn = test_functions.Beale()
+        case "goldstein_price": 
+            test_fn = test_functions.GoldsteinPrice()
+        case "booth": 
+            test_fn = test_functions.Booth()
+        case "himmelblau": 
+            test_fn = test_functions.Himmelblau()
+        case _: raise NotImplementedError
+
 
     # Plotting setup
-    domain_x = np.arange(-5, 5, 0.2)
-    domain_y = np.arange(-5, 5, 0.2)
+    domain_x = np.arange(test_fn.range[0], test_fn.range[1], (test_fn.range[1] - test_fn.range[0]) / 100)
+    domain_y = np.arange(test_fn.range[0], test_fn.range[1], (test_fn.range[1] - test_fn.range[0]) / 100)
 
     X, Y = np.meshgrid(domain_x, domain_y)
     Z = test_fn(X, Y)
@@ -17,13 +33,32 @@ def main():
     ax.plot_surface(X, Y, Z)
 
     # Optimiser setup
-    start_point = [0, -4]
+    if args.start_point:
+        start_point = args.start_point
+    else:
+        rng = np.random.default_rng()
+        start_point = rng.random(2) * (test_fn.range[1] - test_fn.range[0]) + test_fn.range[0]
+    
     max_steps = 10000
-    # opt = optim.SGD(lr=1e-3, pos=start_point)
-    # opt = optim.Momentum(lr=1e-3, decay=1e-5, pos=start_point)
-    # opt = optim.AdaGrad(lr=1e-2, pos=start_point)
-    # opt = optim.RMSProp(lr=1e-2, decay=1e-2, pos=start_point)
-    opt = optim.Adam(lr=1e-2, beta1=0.9, beta2=0.999, pos=start_point)
+
+    # Set up optimisers using their default arguments
+    opts = []
+    for opt in args.optimiser:
+        match opt:
+            case "sgd":
+                opts.append(optim.SGD(pos=start_point))
+            case "momentum":
+                opts.append(optim.Momentum(pos=start_point))
+            case "adagrad":
+                opts.append(optim.Adagrad(pos=start_point))
+            case "rmsprop":
+                opts.append(optim.RMSProp(pos=start_point))
+            case "adam":
+                opts.append(optim.Adam(pos=start_point))
+            case _:
+                raise NotImplementedError
+
+    opt = opts[-1]  # Temporary hack until multiple optimisers are properly implemented.
 
     # Run optimisation
     loss_history = []
@@ -46,7 +81,37 @@ def main():
     plt.show()
 
 
-
-
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        prog="Optimiser Playground",
+        description="Demo for different optimisers, implemented in numpy, with choice of test functions.",
+    )
+    parser.add_argument("-o", "--optimiser", 
+                        choices=[
+                            "sgd",
+                            "momentum",
+                            "adagrad",
+                            "rmsprop",
+                            "adam"
+                            ],
+                        default=["sgd"],
+                        type=str.lower,
+                        nargs='+',
+                        help="Which optimiser(s) to use.",
+                        )
+    parser.add_argument("-f", "--test_fn",
+                        choices=[
+                            "sphere",
+                            "beale",
+                            "goldstein_price",
+                            "booth",
+                            "himmelblau",
+                            ],
+                        default="himmelblau",
+                        type=str.lower,
+                        help="What demo function to use.",
+                        )
+    parser.add_argument("--start_point", type=float, nargs=2)
+
+    args = parser.parse_args()
+    main(args)
