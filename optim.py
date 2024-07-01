@@ -28,6 +28,7 @@ class SGD(Optim):
         self.lr = lr
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
 
@@ -49,6 +50,7 @@ class Momentum(Optim):
 
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
         self.prev_delta = 0
@@ -74,6 +76,7 @@ class NestorovMomentum(Optim):
 
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
         self.prev_delta = 0
@@ -99,6 +102,7 @@ class AdaGrad(Optim):
         self.lr = lr
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
@@ -113,7 +117,7 @@ class AdaGrad(Optim):
 
 
 class RMSProp(Optim):
-    def __init__(self, lr: float = 1e-2, decay: float = 1e-5, pos: np.ndarray | list = np.asarray([2, 3])):
+    def __init__(self, lr: float = 1e-3, decay: float = 1e-5, pos: np.ndarray | list = np.asarray([2, 3])):
         """ Implements RMSProp. 
         
         Like AdaGrad, except allows the gradient accumulator to decay (in an effort to speed things up).
@@ -123,6 +127,7 @@ class RMSProp(Optim):
         self.decay = decay
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
@@ -146,6 +151,7 @@ class Adam(Optim):
         self.beta2 = beta2
         self.pos = np.asarray(pos, dtype=np.float64)
         self.pos_history = []
+        self.loss_history = []
         self.pos_history.append(self.pos)
         self.grad = np.asarray([0, 0], dtype=np.float64)
         self.grad_acc = np.asarray([0, 0], dtype=np.float64)
