@@ -20,6 +20,14 @@ def main(args):
             test_fn = test_functions.Booth()
         case "himmelblau": 
             test_fn = test_functions.Himmelblau()
+        case "threehumpcamel":
+            test_fn = test_functions.ThreeHumpCamel()
+        case "rastrigin":
+            test_fn = test_functions.Rastrigin()
+        case "rosenbrock":
+            test_fn = test_functions.Rosenbrock()
+        case "ackley":
+            test_fn = test_functions.Ackley()
         case _: raise NotImplementedError
 
 
@@ -29,8 +37,9 @@ def main(args):
 
     X, Y = np.meshgrid(domain_x, domain_y)
     Z = test_fn(X, Y)
-    ax = plt.figure().add_subplot(projection='3d')
-    ax.plot_surface(X, Y, Z)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, Z, cmap='magma')
 
     # Optimiser setup
     if args.start_point:
@@ -50,7 +59,7 @@ def main(args):
             case "momentum":
                 opts.append(optim.Momentum(pos=start_point))
             case "adagrad":
-                opts.append(optim.Adagrad(pos=start_point))
+                opts.append(optim.AdaGrad(pos=start_point))
             case "rmsprop":
                 opts.append(optim.RMSProp(pos=start_point))
             case "adam":
@@ -58,26 +67,29 @@ def main(args):
             case _:
                 raise NotImplementedError
 
-    opt = opts[-1]  # Temporary hack until multiple optimisers are properly implemented.
+    # opt = opts[-1]  # Temporary hack until multiple optimisers are properly implemented.
+    colours = ["black", "red", "green", "orange", "pink", "brown"]
 
-    # Run optimisation
-    loss_history = []
-    loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
-    for i in range(max_steps):
-        delta = 1e-9
-        step_pos = np.asarray([opt.pos - np.asarray([delta, 0]), opt.pos - [0, delta]], dtype=np.float64)
-        diff = np.asarray([
-            loss_history[-1] - test_fn(step_pos[0][0], step_pos[0][1]),
-            loss_history[-1] - test_fn(step_pos[1][0], step_pos[1][1])], dtype=np.float64)
-        grad = diff / delta
-        opt.step(grad)
-        loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
+    for i, opt in enumerate(opts):
+        # Run optimisation
+        opt.loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
+        for j in range(max_steps):
+            delta = 1e-9
+            step_pos = np.asarray([opt.pos - np.asarray([delta, 0]), opt.pos - [0, delta]], dtype=np.float64)
+            diff = np.asarray([
+                opt.loss_history[-1] - test_fn(step_pos[0][0], step_pos[0][1]),
+                opt.loss_history[-1] - test_fn(step_pos[1][0], step_pos[1][1])], dtype=np.float64)
+            grad = diff / delta
+            opt.step(grad)
+            opt.loss_history.append(test_fn(opt.pos[0], opt.pos[1]))
 
 
-    # Plotting
-    x_coords, y_coords = opt.get_xy_lists()
-    loss_history = np.array(loss_history)
-    ax.plot3D(x_coords, y_coords, loss_history, "r", zorder=10)
+        # Plotting
+        x_coords, y_coords = opt.get_xy_lists()
+        loss_history = np.array(opt.loss_history)
+        ax.plot(x_coords, y_coords, loss_history, zorder=10, color = colours[i % len(colours)], label=opt.__class__.__name__)
+
+    ax.legend()
     plt.show()
 
 
@@ -106,6 +118,10 @@ if __name__ == "__main__":
                             "goldstein_price",
                             "booth",
                             "himmelblau",
+                            "threehumpcamel",
+                            "rastrigin",
+                            "rosenbrock",
+                            "ackley",
                             ],
                         default="himmelblau",
                         type=str.lower,
