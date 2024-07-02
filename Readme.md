@@ -12,11 +12,13 @@ They are built using only numpy as an exercise. The gradients are estimated by s
 ## Quickstart
 Install `numpy` and `matplotlib`, then run:
 ```bash
-python main.py -o SGD Momentum AdaGrad AdaDelta RMSProp Adam -f himmelblau --start_point 0 -2
+python main.py -o SGD Momentum AdaGrad AdaDelta RMSProp Adam -f himmelblau --start_point 0.2 -4.5
 ```
-Should give a result similar to the below image:
+This runs the various optimisers on Himmelblau's function starting at point (0.2, -4.5), and should give a result similar to the below image:
 
 <img src="./imgs/himmelblau_demo.png" alt="SGD, Momentum, AdaGrad, RMSProp and Adam running on Himmelblau's function." width="75%"/>
+
+Note that Himmelblau's function has four distinct global minima.
 
 ## Usage
 
