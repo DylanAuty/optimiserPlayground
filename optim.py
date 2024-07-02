@@ -115,6 +115,38 @@ class AdaGrad(Optim):
         self.pos_history.append(self.pos)
 
 
+class AdaDelta(Optim):
+    def __init__(self, lr: float = 1.0, rho: float = 0.9, eps: float = 1e-06, decay:float = 0, pos: np.ndarray | list = np.asarray([2, 3])):
+        """ Implements AdaDelta. 
+        
+        Keeps track of the square of the change at each step and the square of the gradients.
+        Delta is grad * RMS(decayed past deltas) / RMS(decayed past grads)
+        """
+        self.lr = lr
+        self.rho = rho
+        self.eps = eps
+        self.decay = decay
+
+        self.pos = np.asarray(pos, dtype=np.float64)
+        self.pos_history = []
+        self.loss_history = []
+        self.pos_history.append(self.pos)
+
+        self.grad = np.asarray([0, 0], dtype=np.float64)
+        self.sq_grad_acc_1 = np.asarray([0, 0], dtype=np.float64)
+        self.sq_delta_acc = np.asarray([0, 0], dtype=np.float64)
+
+
+    def step(self, grad: np.ndarray | list):
+        self.grad = np.asarray(grad)
+        self.grad = self.grad + self.decay * self.pos
+
+        self.sq_grad_acc_1 = self.sq_grad_acc_1 * self.rho + (self.grad ** 2) * (1 - self.rho)
+        delta = (np.sqrt(self.sq_delta_acc + self.eps) / (np.sqrt(self.sq_grad_acc_1 + self.eps))) * self.grad
+        self.sq_delta_acc = self.sq_delta_acc * self.rho + (delta ** 2) * (1 - self.rho)
+        self.pos = self.pos - self.lr * delta
+        self.pos_history.append(self.pos)
+
 
 class RMSProp(Optim):
     def __init__(self, lr: float = 1e-3, decay: float = 1e-5, pos: np.ndarray | list = np.asarray([2, 3])):

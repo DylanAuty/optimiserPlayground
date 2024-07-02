@@ -48,7 +48,7 @@ def main(args):
         rng = np.random.default_rng()
         start_point = rng.random(2) * (test_fn.range[1] - test_fn.range[0]) + test_fn.range[0]
     
-    max_steps = 10000
+    max_steps = 20000
 
     # Set up optimisers using their default arguments
     opts = []
@@ -60,6 +60,8 @@ def main(args):
                 opts.append(optim.Momentum(pos=start_point))
             case "adagrad":
                 opts.append(optim.AdaGrad(pos=start_point))
+            case "adadelta":
+                opts.append(optim.AdaDelta(pos=start_point))
             case "rmsprop":
                 opts.append(optim.RMSProp(pos=start_point))
             case "adam":
@@ -90,12 +92,16 @@ def main(args):
         ax.plot(x_coords, y_coords, loss_history, zorder=10, color = colours[i % len(colours)], label=opt.__class__.__name__)
 
     ax.legend()
+    fig.tight_layout()
     plt.show()
+
+
+    
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="Optimiser Playground",
+        prog="python main.py",
         description="Demo for different optimisers, implemented in numpy, with choice of test functions.",
     )
     parser.add_argument("-o", "--optimiser", 
@@ -103,6 +109,7 @@ if __name__ == "__main__":
                             "sgd",
                             "momentum",
                             "adagrad",
+                            "adadelta",
                             "rmsprop",
                             "adam"
                             ],
