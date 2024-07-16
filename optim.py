@@ -4,9 +4,13 @@
 import numpy as np
 
 class Optim():
-    def __init__(self):
+    def __init__(self, pos: np.ndarray | list = np.asarray([2, 3])):
         """ Generic optimiser parent class. """
-        raise NotImplementedError
+        self.pos = np.asarray(pos, dtype=np.float64)
+        self.pos_history = []
+        self.loss_history = []
+        self.pos_history.append(self.pos)
+        self.grad = np.asarray([0, 0], dtype=np.float64)
 
 
     def step(self):
@@ -25,12 +29,8 @@ class SGD(Optim):
         
         Finds the direction of steepest descent, and steps a bit in that direction.
         """
+        super().__init__(pos=pos)
         self.lr = lr
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
 
 
     def step(self, grad: np.ndarray | list):
@@ -45,14 +45,9 @@ class Momentum(Optim):
 
         Same as SGD, but also adds on the previous step (but with magnitude decayed).
         """
+        super().__init__(pos=pos)
         self.lr = lr
         self.decay = decay
-
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.prev_delta = 0
 
 
@@ -71,14 +66,9 @@ class NestorovMomentum(Optim):
         Nestorov momentum is the same as regular momentum, but it evaluates the gradient after the update instead of before.
         """
         raise NotImplementedError   # Needs API change to know value of function so it can estimate grad again
+        super().__init__(pos=pos)
         self.lr = lr
         self.decay = decay
-
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.prev_delta = 0
 
 
@@ -99,12 +89,8 @@ class AdaGrad(Optim):
         have not been well-explored. I.e., if a particular feature has been updated a lot already, it doesn't need
         to be updated as much.
         """
+        super().__init__(pos=pos)
         self.lr = lr
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
 
 
@@ -122,17 +108,11 @@ class AdaDelta(Optim):
         Keeps track of the square of the change at each step and the square of the gradients.
         Delta is grad * RMS(decayed past deltas) / RMS(decayed past grads)
         """
+        super().__init__(pos=pos)
         self.lr = lr
         self.rho = rho
         self.eps = eps
         self.decay = decay
-
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc_1 = np.asarray([0, 0], dtype=np.float64)
         self.sq_delta_acc = np.asarray([0, 0], dtype=np.float64)
 
@@ -155,13 +135,9 @@ class RMSProp(Optim):
         Like AdaGrad, except allows the gradient accumulator to decay (in an effort to speed things up).
         AdaGrad is slow since the updates are only made smaller more aggressively over time.
         """
+        super().__init__(pos=pos)
         self.lr = lr
         self.decay = decay
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
 
 
@@ -178,14 +154,10 @@ class Adam(Optim):
         
         Momentum + RMSProp: keeps both grad and sq_grad accumulators, i.e. it does both momentum and RMSProp.
         """
+        super().__init__(pos=pos)
         self.lr = lr
         self.beta1 = beta1
         self.beta2 = beta2
-        self.pos = np.asarray(pos, dtype=np.float64)
-        self.pos_history = []
-        self.loss_history = []
-        self.pos_history.append(self.pos)
-        self.grad = np.asarray([0, 0], dtype=np.float64)
         self.grad_acc = np.asarray([0, 0], dtype=np.float64)
         self.sq_grad_acc = np.asarray([0, 0], dtype=np.float64)
 
